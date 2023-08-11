@@ -72,7 +72,7 @@ class ThoughtNode:
             assert self.parent.solution_evaluated
             solution_prompt = "\n\n{{#user}}Thanks. Has a solution been reached?{{/user}}{{#assistant}}" + self.parent.solution_str + "\n\n{{/assistant}}"
 
-        sysprompt = "You are a genius and a skilled problem solver. You reason step-by-step. You communicate efficiently with terse brevity."
+        sysprompt = "You are skilled in problem solving and deduction. You reason step-by-step. You communicate efficiently with terse brevity."
         #         {{#user}}Represent the argument so far as a set of Horn clauses.{{/user}}
         #         {{#assistant}}{{gen 'horn_clauses' temperature=0.0 max_tokens=500}}\n{{/assistant}}
         # {{  # user}}{{initial_question}}\n\n{{/user}}
@@ -83,9 +83,9 @@ class ThoughtNode:
         ''' + solution_prompt + mistake_prompt + '''
         {{#user}}Represent the argument as a set of Horn clauses.{{/user}}
         {{#assistant}}{{gen 'horn_clauses' temperature=0.0 max_tokens=500}}\n{{/assistant}}
-        {{#user}}Give the next reasoning step. You can give subsequent reasoning steps later if needed; focus on just the next step. Be strategic and systematic.{{/user}}
+        {{#user}}Give the next reasoning step. You can give subsequent reasoning steps later if needed; focus on just the next step. Be strategic.{{/user}}
         {{#assistant}}Next step:{{/assistant}}
-        {{#assistant}}{{gen 'next_step' temperature=0.0 max_tokens=500}}{{/assistant}}
+        {{#assistant}}{{gen 'next_step' temperature=0.0 max_tokens=300}}{{/assistant}}
         ''')
         thought_extension_eval = thought_extension_prompt(thought=self.thought, previous_thoughts='\n\n'.join(previous_thoughts), mistake_prompt=mistake_prompt, solution_prompt=solution_prompt)
         thought_extension = thought_extension_eval['next_step']
@@ -99,11 +99,11 @@ class ThoughtNode:
         if self.mistake_evaluated:
             return self.is_mistake
         previous_thoughts = self.get_previous_thoughts()
-        sysprompt = "You are a skeptical genius. You check for mistakes and do not automatically assume what you are evaluating is correct. You communicate efficiency with terse brevity."
+        sysprompt = "You a highly logical and skeptical genius. You check carefully for mistakes."
         mistake_eval_prompt = guidance('''
         {{#system}}''' + sysprompt + '''{{/system}}
-        {{#user}}State your thoughts so far.{{/user}}
-        {{#assistant}}{{previous_thoughts}}\n\n{{horn_clauses}}\n\n{{thought}}{{/assistant}}
+        {{#user}}This is a reasoned argument answering a question. It may be incomplete:{{/user}}
+        {{#user}}{{previous_thoughts}}\n\n{{horn_clauses}}\n\n{{thought}}{{/user}}
         {{#user}}Explain whether or not there is a mistake in the (possibly unfinished) reasoning so far.{{/user}}
         {{#assistant}}{{gen 'mistake_evaluation' max_tokens=300 temperature=0.0}}{{/assistant}}
         {{#user}}To summarize, did the reasoning have a mistake? Answer y or n. If you are unsure, answer n.{{/user}}
@@ -127,7 +127,7 @@ class ThoughtNode:
             return self.is_solution
         previous_thoughts = self.get_previous_thoughts()
         # You check solutions for completeness and correctness. You communicate tersely and value brevity and efficiency.
-        sysprompt = "You are an expert logician. You check solutions for completeness and correctness. You communicate tersely and value brevity and efficiency."
+        sysprompt = "You are an expert logician. You check solutions for completeness and correctness."
         solution_eval_prompt = guidance('''
         {{#system}}''' + sysprompt + '''{{/system}}
         {{#user}}Given these thoughts: "{{previous_thoughts}}\n\n{{thought}}"\n\nWas a complete solution given? Why or why not?{{/user}}
@@ -192,7 +192,7 @@ Input: 4 4 6 8
 """
 
 question = """
-we meet three people, A, B, and C, one of whom is a knight, one a knave, and one a spy. The knight always tells the truth, the knave always lies, and the spy can either lie or tell the truth.
+We meet three people, A, B, and C, one of whom is a knight, one a knave, and one a spy. The knight always tells the truth, the knave always lies, and the spy can either lie or tell the truth.
 
 A says: "C is a knave."
 B says: "A is a knight."
